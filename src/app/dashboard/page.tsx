@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { LocationSelector } from '@/components/location/location-selector';
@@ -87,9 +87,9 @@ export default function Dashboard() {
     }
   );
 
-  const handleLocationChange = (location: Location) => {
+  const handleLocationChange = useCallback((location: Location) => {
     setSelectedLocation(location);
-  };
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col">

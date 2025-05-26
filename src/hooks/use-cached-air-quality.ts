@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getAirQualityByLocation, getLatestMeasurements, AirQualityData } from '@/lib/api';
 import { localCache, generateCacheKey } from '@/lib/cache';
 

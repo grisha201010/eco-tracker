@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './use-auth';
 import { userSettingsCache, localCache, generateCacheKey } from '@/lib/cache';
 
@@ -41,7 +41,7 @@ export function useCachedSettings() {
   const getCacheKey = (userId: string) => generateCacheKey('user-settings', { userId });
 
   // Загрузка настроек
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     if (!isAuthenticated || !user) {
       setSettings(DEFAULT_SETTINGS);
       setLoading(false);
@@ -53,7 +53,7 @@ export function useCachedSettings() {
     try {
       // Сначала проверяем memory cache
       let cachedSettings = userSettingsCache.get<UserSettings>(cacheKey);
-      
+
       if (cachedSettings) {
         setSettings(cachedSettings);
         setLoading(false);
@@ -62,7 +62,7 @@ export function useCachedSettings() {
 
       // Затем проверяем localStorage
       cachedSettings = localCache.get<UserSettings>(cacheKey);
-      
+
       if (cachedSettings) {
         setSettings(cachedSettings);
         // Сохраняем в memory cache
@@ -73,7 +73,7 @@ export function useCachedSettings() {
 
       // Загружаем с сервера
       const response = await fetch('/api/user/settings');
-      
+
       if (!response.ok) {
         throw new Error('Ошибка при загрузке настроек');
       }
@@ -94,7 +94,7 @@ export function useCachedSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user]);
 
   // Сохранение настроек
   const saveSettings = async (newSettings: Partial<UserSettings>) => {
@@ -110,7 +110,7 @@ export function useCachedSettings() {
 
       // Оптимистичное обновление - сначала обновляем локально
       setSettings(updatedSettings);
-      
+
       // Обновляем кэши
       userSettingsCache.set(cacheKey, updatedSettings);
       localCache.set(cacheKey, updatedSettings, 30 * 60 * 1000);
@@ -141,7 +141,7 @@ export function useCachedSettings() {
     } catch (err) {
       console.error('Error saving settings:', err);
       setError('Ошибка при сохранении настроек');
-      
+
       // Откатываем изменения
       await loadSettings();
       return false;
@@ -153,7 +153,7 @@ export function useCachedSettings() {
   // Очистка кэша настроек
   const clearSettingsCache = () => {
     if (!user) return;
-    
+
     const cacheKey = getCacheKey(user.id);
     userSettingsCache.delete(cacheKey);
     localCache.delete(cacheKey);
@@ -168,7 +168,7 @@ export function useCachedSettings() {
   // Загрузка настроек при изменении пользователя
   useEffect(() => {
     loadSettings();
-  }, [user, isAuthenticated]);
+  }, [loadSettings]);
 
   // Очистка кэша при выходе пользователя
   useEffect(() => {
